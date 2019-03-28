@@ -89,6 +89,25 @@ class ft_net(nn.Module):
         x = self.classifier(x)
         return x
 
+class SqueezeNet(nn.Module):
+    def __init__(self, class_num, droprate=0.5, stride=2):
+        super(ft_net, self).__init__()
+        model_ft = models.squeezenet1_1(pretrained=True)
+        # avg pooling to global pooling
+        # if stride == 1:
+        #     model_ft.layer4[0].downsample[0].stride = (1,1)
+        #     model_ft.layer4[0].conv2.stride = (1,1)
+        model_ft.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        self.model = model_ft
+        self.classifier = ClassBlock(2048, class_num, droprate)
+
+    def forward(self, x):
+        x = self.model.features(x)
+        x = self.model.avgpool(x)
+        x = x.view(x.size(0), x.size(1))
+        x = self.classifier(x)
+        return x
+
 # Define the DenseNet121-based Model
 class ft_net_dense(nn.Module):
 

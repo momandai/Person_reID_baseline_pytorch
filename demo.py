@@ -70,7 +70,7 @@ def sort_img(qf, ql, qc, gf, gl, gc):
     junk_index2 = np.intersect1d(query_index, camera_index)
     junk_index = np.append(junk_index2, junk_index1) 
 
-    mask = np.in1d(index, junk_index, invert=True)
+    mask = np.in1d(index, junk_index, invert=True)  # 去除同一摄像头同一label以及label为-1的点
     index = index[mask]
     return index
 

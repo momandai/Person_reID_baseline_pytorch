@@ -74,7 +74,7 @@ transform_train_list = [
         transforms.RandomCrop((256,128)),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # ???
         ]
 
 transform_val_list = [
@@ -114,6 +114,9 @@ if opt.train_all:
      train_all = '_all'
 
 image_datasets = {}
+
+a = os.path.join(data_dir, 'train' + train_all)
+
 image_datasets['train'] = datasets.ImageFolder(os.path.join(data_dir, 'train' + train_all),
                                           data_transforms['train'])
 image_datasets['val'] = datasets.ImageFolder(os.path.join(data_dir, 'val'),
@@ -180,7 +183,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 #print(inputs.shape)
                 # wrap them in Variable
                 if use_gpu:
-                    inputs = Variable(inputs.cuda().detach())
+                    inputs = Variable(inputs.cuda().detach())   #???
                     labels = Variable(labels.cuda().detach())
                 else:
                     inputs, labels = Variable(inputs), Variable(labels)
@@ -313,6 +316,7 @@ opt.nclasses = len(class_names)
 print(model)
 
 if not opt.PCB:
+    print(model.classifier.parameters())
     ignored_params = list(map(id, model.classifier.parameters() ))
     base_params = filter(lambda p: id(p) not in ignored_params, model.parameters())
     optimizer_ft = optim.SGD([
@@ -347,13 +351,13 @@ else:
 # Decay LR by a factor of 0.1 every 40 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=40, gamma=0.1)
 
-######################################################################
+###########################################################################
 # Train and evaluate
 # ^^^^^^^^^^^^^^^^^^
 #
 # It should take around 1-2 hours on GPU. 
 #
-dir_name = os.path.join('./model',name)
+dir_name = os.path.join('./model', name)
 if not os.path.isdir(dir_name):
     os.mkdir(dir_name)
 #record every run

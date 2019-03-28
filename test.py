@@ -16,7 +16,7 @@ import time
 import os
 import scipy.io
 import yaml
-from model import ft_net, ft_net_dense, ft_net_NAS, PCB, PCB_test
+from model import ft_net, ft_net_dense, ft_net_NAS, PCB, PCB_test, SqueezeNet
 
 #fp16
 try:
@@ -32,7 +32,7 @@ parser.add_argument('--gpu_ids',default='0', type=str,help='gpu_ids: e.g. 0  0,1
 parser.add_argument('--which_epoch',default='last', type=str, help='0,1,2,3...or last')
 parser.add_argument('--test_dir',default='../Market/pytorch',type=str, help='./test_data')
 parser.add_argument('--name', default='ft_ResNet50', type=str, help='save model path')
-parser.add_argument('--batchsize', default=256, type=int, help='batchsize')
+parser.add_argument('--batchsize', default=32, type=int, help='batchsize')
 parser.add_argument('--use_dense', action='store_true', help='use densenet121' )
 parser.add_argument('--PCB', action='store_true', help='use PCB' )
 parser.add_argument('--multi', action='store_true', help='use multiple query' )
@@ -107,11 +107,11 @@ data_dir = test_dir
 if opt.multi:
     image_datasets = {x: datasets.ImageFolder( os.path.join(data_dir,x) ,data_transforms) for x in ['gallery','query','multi-query']}
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batchsize,
-                                             shuffle=False, num_workers=16) for x in ['gallery','query','multi-query']}
+                                             shuffle=False, num_workers=8) for x in ['gallery','query','multi-query']}
 else:
     image_datasets = {x: datasets.ImageFolder( os.path.join(data_dir,x) ,data_transforms) for x in ['gallery','query']}
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batchsize,
-                                             shuffle=False, num_workers=16) for x in ['gallery','query']}
+                                             shuffle=False, num_workers=8) for x in ['gallery','query']}
 class_names = image_datasets['query'].classes
 use_gpu = torch.cuda.is_available()
 
@@ -205,7 +205,10 @@ if opt.use_dense:
 elif opt.use_NAS:
     model_structure = ft_net_NAS(opt.nclasses)
 else:
-    model_structure = ft_net(opt.nclasses, stride = opt.stride)
+    if name == "squeeze":
+        model_structure = SqueezeNet(opt.nclasses, stride = opt.stride)
+    else:
+        model_structure = ft_net(opt.nclasses, stride = opt.stride)
 
 if opt.PCB:
     model_structure = PCB(opt.nclasses)
